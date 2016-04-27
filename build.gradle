@@ -1,0 +1,90 @@
+buildscript {
+	ext {
+		springBootVersion = '1.4.0.M2'
+	}
+	repositories {
+		mavenCentral()
+		maven { url "https://repo.spring.io/snapshot" }
+		maven { url "https://repo.spring.io/milestone" }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}") 
+	}
+}
+allprojects {
+	tasks.withType(JavaCompile) {
+		options.compilerArgs << "-Xlint:deprecation"
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+
+
+jar {
+	baseName = 'LeonWord'
+	version = '0.0.1-SNAPSHOT'
+}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+	maven { url "https://repo.spring.io/snapshot" }
+	maven { url "https://repo.spring.io/milestone" }
+}
+
+//Project's dependencies
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter-aop')
+	compile('org.springframework.boot:spring-boot-starter-cache')
+	compile('org.springframework.cloud:spring-cloud-config-server')
+	compile('org.springframework.boot:spring-boot-starter-cloud-connectors')
+	compile('org.springframework.cloud:spring-cloud-starter-eureka')
+	compile('org.springframework.cloud:spring-cloud-starter-eureka-server')
+//	compile('org.springframework.boot:spring-boot-starter-data-cassandra')
+	compile('org.springframework.boot:spring-boot-starter-jta-atomikos')
+	compile('org.springframework.retry:spring-retry')
+//	compile('org.springframework.boot:spring-boot-starter-security')
+	compile('org.springframework.session:spring-session')
+	compile('org.springframework.boot:spring-boot-starter-validation')
+	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('org.springframework.boot:spring-boot-starter-websocket')
+	compile('org.springframework.boot:spring-boot-starter-ws')
+	compile('org.springframework.boot:spring-boot-starter-log4j2')
+	compile('com.fasterxml.jackson.core:jackson-databind')
+	compile('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml')
+
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+//Exclude logback in all package for using log4j2
+configurations {
+	all*.exclude module : 'spring-boot-starter-logging'
+}
+
+dependencyManagement {
+	imports { 
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:Brixton.BUILD-SNAPSHOT" 
+	}
+}
+
+//For eclipse user
+eclipse {
+	classpath {
+		 containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
+		 containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+	}
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.12'
+}
+
+//Work around fix gralde build accept profile parameter 'spring.profiles.active' at runtime
+bootRun {
+	String activeProfile =  System.properties['spring.profiles.active']
+	systemProperty "spring.profiles.active", activeProfile
+}
